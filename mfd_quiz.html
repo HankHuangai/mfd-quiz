@@ -365,8 +365,10 @@ function renderP2(){
   sl.textContent=isLike?'最像你的第一個念頭是？':'最不像你的是？';
   sl.className='step-label '+(isLike?'step-like':'step-unlike');
   document.getElementById('p2-back').style.visibility=(p2Idx===0&&isLike)?'hidden':'visible';
-  document.getElementById('p2-next').disabled=true;
-  document.getElementById('p2-next').textContent=(p2Idx===p2Qs.length-1&&!isLike)?'查看結果 →':'下一步';
+  const nextBtn=document.getElementById('p2-next');
+  nextBtn.textContent=(p2Idx===p2Qs.length-1&&!isLike)?'查看結果 →':'下一步';
+  const alreadySelected=isLike?(p2LikeSel!==null):(p2UnlikeSel!==null);
+  nextBtn.disabled=!alreadySelected;
   const opts=document.getElementById('p2-opts');
   opts.innerHTML='';
   const letters=['A','B','C','D'];
