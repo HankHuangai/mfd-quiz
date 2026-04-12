@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MFD 金錢財務性格測驗</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f8f7f4;color:#1a1a1a;min-height:100vh;padding:1rem}
+.wrap{max-width:640px;margin:0 auto;padding:2rem 1.25rem;background:white;border-radius:16px;min-height:100vh}
+.screen{display:none}.screen.active{display:block}
+.eyebrow{font-size:11px;letter-spacing:0.1em;color:#888;margin-bottom:1rem;text-transform:uppercase}
+.title{font-size:24px;font-weight:500;color:#1a1a1a;line-height:1.4;margin-bottom:1rem}
+.body-text{font-size:15px;color:#555;line-height:1.8;margin-bottom:0.75rem}
+.meta{font-size:13px;color:#aaa;margin-bottom:2rem}
+.prog-wrap{margin-bottom:1.75rem}
+.prog-label{font-size:12px;color:#aaa;margin-bottom:0.5rem}
+.prog-bar{height:2px;background:#e8e8e8;border-radius:1px}
+.prog-fill{height:2px;background:#1D9E75;border-radius:1px;transition:width 0.4s ease}
+.phase-tag{font-size:11px;letter-spacing:0.08em;color:#aaa;margin-bottom:0.75rem;text-transform:uppercase}
+.q-text{font-size:17px;font-weight:500;color:#1a1a1a;line-height:1.6;margin-bottom:1.5rem}
+.step-label{font-size:12px;font-weight:500;padding:3px 10px;border-radius:20px;display:inline-block;margin-bottom:0.75rem}
+.step-like{background:#E1F5EE;color:#0F6E56}
+.step-unlike{background:#FAECE7;color:#993C1D}
+.opts{display:flex;flex-direction:column;gap:8px;margin-bottom:1.5rem}
+.opt{display:flex;align-items:flex-start;gap:12px;border:0.5px solid #e0e0e0;border-radius:12px;padding:0.9rem 1.1rem;cursor:pointer;transition:all 0.15s;background:white}
+.opt:hover{border-color:#bbb;background:#fafafa}
+.opt.like{border:1.5px solid #1D9E75;background:#E1F5EE}
+.opt.unlike{border:1.5px solid #D85A30;background:#FAECE7}
+.opt.disabled{opacity:0.3;pointer-events:none}
+.opt-letter{font-size:12px;font-weight:500;color:#aaa;min-width:18px;margin-top:2px;flex-shrink:0}
+.opt.like .opt-letter{color:#0F6E56}
+.opt.unlike .opt-letter{color:#712B13}
+.opt-text{font-size:14px;color:#1a1a1a;line-height:1.6}
+.opt.like .opt-text{color:#085041}
+.opt.unlike .opt-text{color:#712B13}
+.nav{display:flex;justify-content:space-between;align-items:center;margin-top:0.5rem}
+.btn{border:0.5px solid #ccc;background:transparent;color:#333;font-size:14px;padding:9px 22px;border-radius:8px;cursor:pointer;transition:all 0.15s}
+.btn:hover{background:#f5f5f5}
+.btn.primary{background:#1D9E75;border-color:#1D9E75;color:white;font-weight:500}
+.btn.primary:hover{background:#0F6E56}
+.btn:disabled{opacity:0.3;cursor:not-allowed}
+.btn-ghost{font-size:13px;color:#aaa;background:none;border:none;cursor:pointer;padding:9px 0}
+.btn-ghost:hover{color:#555}
+.trans-wrap{padding:2rem 0}
+.trans-badge{display:inline-block;font-size:13px;font-weight:500;padding:6px 18px;border-radius:20px;margin-bottom:1rem}
+.trans-text{font-size:15px;color:#555;line-height:1.8;margin-bottom:2rem}
+.dir-bars{display:flex;gap:16px;align-items:flex-start;margin-bottom:2rem}
+.dir-block{text-align:center}
+.dir-block-label{font-size:11px;color:#aaa;margin-bottom:4px}
+.dir-block-bar{width:80px;height:8px;border-radius:4px;background:#e8e8e8;overflow:hidden}
+.dir-block-fill{height:8px;border-radius:4px}
+.dir-block-val{font-size:13px;font-weight:500;margin-top:4px}
+.result-badge{display:inline-block;font-size:12px;font-weight:500;padding:4px 14px;border-radius:8px;margin-bottom:1rem}
+.result-title{font-size:22px;font-weight:500;color:#1a1a1a;margin-bottom:0.25rem}
+.result-role{font-size:14px;margin-bottom:1.5rem}
+.result-desc{font-size:15px;color:#1a1a1a;line-height:1.8;margin-bottom:1.75rem}
+.slabel{font-size:11px;letter-spacing:0.08em;color:#aaa;margin-bottom:0.6rem;text-transform:uppercase}
+.tags{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:1.5rem}
+.tag{font-size:13px;padding:4px 12px;border-radius:20px;border:0.5px solid #e0e0e0;color:#555;background:#f5f5f5}
+.tag.g{background:#E1F5EE;color:#0F6E56;border-color:#9FE1CB}
+.tag.r{background:#FAECE7;color:#993C1D;border-color:#F5C4B3}
+.tip-box{border-left:2px solid #ddd;padding:0.75rem 1rem;margin-bottom:1.75rem;border-radius:0 8px 8px 0;background:#f9f9f9}
+.tip-box p{font-size:14px;color:#555;line-height:1.8}
+.sig-box{padding:1rem 1.25rem;border-radius:12px;border:0.5px solid #e0e0e0;margin-bottom:1.5rem;background:#f9f9f9}
+.sig-box p{font-size:14px;color:#555;line-height:1.8}
+.bars{display:flex;flex-direction:column;gap:8px;margin-bottom:1.75rem}
+.bar-row{display:flex;align-items:center;gap:10px}
+.bar-code{font-size:12px;color:#555;width:26px}
+.bar-track{flex:1;height:5px;background:#e8e8e8;border-radius:3px;overflow:hidden}
+.bar-fill{height:5px;border-radius:3px;transition:width 0.9s ease}
+.bar-num{font-size:11px;color:#aaa;width:24px;text-align:right}
+.bar-role{font-size:11px;color:#aaa}
+.divider{border:none;border-top:0.5px solid #e8e8e8;margin:1.5rem 0}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<div class="screen active" id="s-intro">
+  <p class="eyebrow">MFD 金錢財務性格測驗</p>
+  <p class="title">你跟金錢的關係，<br>比你以為的更有結構</p>
+  <p class="body-text">根據榮格心理類型理論，透過兩階段找出你在金錢財務上的主導功能。每題請選出最像你和最不像你的答案，讓結果更精準。</p>
+  <p class="meta">共 11 題 · 分兩階段 · 約 5 分鐘</p>
+  <button class="btn primary" onclick="start()">開始測驗</button>
+</div>
+
+<div class="screen" id="s-p1">
+  <div class="prog-wrap">
+    <p class="prog-label" id="p1-label">第 1 題，共 3 題</p>
+    <div class="prog-bar"><div class="prog-fill" id="p1-prog" style="width:33%"></div></div>
+  </div>
+  <p class="phase-tag">第一階段 · 能量方向</p>
+  <p class="q-text" id="p1-q"></p>
+  <div class="opts" id="p1-opts"></div>
+  <div class="nav">
+    <button class="btn-ghost" id="p1-back" onclick="p1Back()">← 上一題</button>
+    <button class="btn primary" id="p1-next" onclick="p1Next()" disabled>下一題</button>
+  </div>
+</div>
+
+<div class="screen" id="s-trans">
+  <div class="trans-wrap">
+    <p class="eyebrow">第一階段完成</p>
+    <div class="trans-badge" id="trans-badge"></div>
+    <p class="trans-text" id="trans-text"></p>
+    <div class="dir-bars">
+      <div class="dir-block">
+        <p class="dir-block-label">外向</p>
+        <div class="dir-block-bar"><div class="dir-block-fill" id="e-bar" style="background:#185FA5"></div></div>
+        <p class="dir-block-val" id="e-val"></p>
+      </div>
+      <div style="font-size:13px;color:#aaa;padding-top:12px">vs</div>
+      <div class="dir-block">
+        <p class="dir-block-label">內向</p>
+        <div class="dir-block-bar"><div class="dir-block-fill" id="i-bar" style="background:#0F6E56"></div></div>
+        <p class="dir-block-val" id="i-val"></p>
+      </div>
+    </div>
+    <button class="btn primary" onclick="startP2()">進入第二階段</button>
+  </div>
+</div>
+
+<div class="screen" id="s-p2">
+  <div class="prog-wrap">
+    <p class="prog-label" id="p2-label">題目 1／8　步驟 1／2</p>
+    <div class="prog-bar"><div class="prog-fill" id="p2-prog" style="width:6%"></div></div>
+  </div>
+  <p class="phase-tag">第二階段 · 功能傾向</p>
+  <p class="q-text" id="p2-q"></p>
+  <span class="step-label step-like" id="step-label">最像你的第一個念頭是？</span>
+  <div class="opts" id="p2-opts"></div>
+  <div class="nav">
+    <button class="btn-ghost" id="p2-back" onclick="p2Back()">← 上一步</button>
+    <button class="btn primary" id="p2-next" onclick="p2Next()" disabled>下一步</button>
+  </div>
+</div>
+
+<div class="screen" id="s-result">
+  <div id="result-body"></div>
+  <hr class="divider">
+  <button class="btn" onclick="restart()">重新測驗</button>
+</div>
+
+</div>
+<script>
+const Q1=[
+  {text:"賺到錢或達成財務目標時，你通常的反應是？",
+   a:{text:"想告訴重要的人，說出來分享才覺得真實完整",val:"e"},
+   b:{text:"自己心裡知道就夠了，不一定需要說出來",val:"i"}},
+  {text:"關於金錢的想法，你通常怎麼讓它變得更清晰？",
+   a:{text:"跟別人討論之後，思路才會真正清楚",val:"e"},
+   b:{text:"自己安靜獨處思考，不被打擾時才能想清楚",val:"i"}},
+  {text:"如果你做了很好的財務決策，卻沒有任何人知道，你會感覺？",
+   a:{text:"有點可惜，沒有人知道讓成就感打了折",val:"e"},
+   b:{text:"沒關係，自己內心的滿足感已經足夠",val:"i"}}
+];
+const Q2e=[
+  {q:"你剛收到相當於一個月收入的意外之財",opts:[
+    {text:"規劃一下，讓這筆錢發揮最大效益",val:"Te"},
+    {text:"想到可以用來做一件讓家人開心的事",val:"Fe"},
+    {text:"先好好犒賞自己，當下體驗最真實",val:"Se"},
+    {text:"這是個機會，可以試試一直想嘗試的方向",val:"Ne"}]},
+  {q:"你的投資帳戶這個月跌了相當於半個月收入",opts:[
+    {text:"分析原因，評估是否需要調整配置",val:"Te"},
+    {text:"擔心這會影響對家人的承諾或計畫",val:"Fe"},
+    {text:"很難受，想立刻做點什麼讓局面改變",val:"Se"},
+    {text:"思考這是短期雜訊還是趨勢改變的訊號",val:"Ne"}]},
+  {q:"你需要在兩份工作中選擇，薪水一樣，一份穩定、一份有機會但風險高",opts:[
+    {text:"分析兩份工作的長期回報與發展結構",val:"Te"},
+    {text:"考慮哪一份對家庭生活和身邊的人影響更好",val:"Fe"},
+    {text:"看哪一份讓我當下更有衝勁和感覺",val:"Se"},
+    {text:"判斷哪個方向符合我對未來的整體想像",val:"Ne"}]},
+  {q:"你在逛街時看到一樣想要的東西，價格相當於三天收入",opts:[
+    {text:"想想這個東西能帶來什麼實際價值或用途",val:"Te"},
+    {text:"想到送給重要的人或一起使用會很開心",val:"Fe"},
+    {text:"感覺喜歡就買，當下的感受最真實",val:"Se"},
+    {text:"這不在我的計畫裡，先放著看看",val:"Ne"}]},
+  {q:"朋友分享一個新投資機會，預期報酬相當於三個月收入",opts:[
+    {text:"要看具體數字和邏輯才能判斷",val:"Te"},
+    {text:"朋友信任我才分享，想好好回應這份關係",val:"Fe"},
+    {text:"感覺有趣，想先了解即時市場狀況",val:"Se"},
+    {text:"這個方向的長期潛力是什麼，值不值得布局",val:"Ne"}]},
+  {q:"你發現每月固定支出比收入多了相當於五天收入",opts:[
+    {text:"列出所有支出，找出可以刪減的項目",val:"Te"},
+    {text:"先跟家人討論，一起找出大家都能接受的調整",val:"Fe"},
+    {text:"看哪些支出是最近真正讓自己有感覺的，其他先砍",val:"Se"},
+    {text:"重新思考整體財務方向，這是不是需要改變的訊號",val:"Ne"}]},
+  {q:"你有機會參加一個投資說明會，主題是你不熟悉的領域",opts:[
+    {text:"先做功課，看這個領域的數據和報酬結構",val:"Te"},
+    {text:"看看有沒有朋友一起去，有伴才有動力",val:"Fe"},
+    {text:"直接去現場感受一下氛圍再說",val:"Se"},
+    {text:"研究一下這個領域未來的發展趨勢",val:"Ne"}]},
+  {q:"你達成財務目標，存到相當於六個月收入的緊急預備金",opts:[
+    {text:"這個目標我設定了時間表，如期達成",val:"Te"},
+    {text:"家人知道這件事，讓他們也感到安心",val:"Fe"},
+    {text:"達成的那一刻，當下的滿足感很真實",val:"Se"},
+    {text:"這是更大計畫的第一步，讓我看到更多可能",val:"Ne"}]}
+];
+const Q2i=[
+  {q:"你剛收到相當於一個月收入的意外之財",opts:[
+    {text:"想清楚這筆錢最合理的用途和配置邏輯",val:"Ti"},
+    {text:"思考這筆錢用在什麼地方最符合我的價值觀",val:"Fi"},
+    {text:"放到習慣的地方，維持財務上的穩定秩序",val:"Si"},
+    {text:"等一等，想看清楚這筆錢在長期上能做什麼",val:"Ni"}]},
+  {q:"你的投資帳戶這個月跌了相當於半個月收入",opts:[
+    {text:"重新檢視判斷邏輯，找出哪裡出了問題",val:"Ti"},
+    {text:"這跟我當初的價值判斷一致嗎，還是我搞錯了",val:"Fi"},
+    {text:"很不安，這打破了我原本熟悉的財務秩序",val:"Si"},
+    {text:"這是短暫的，長期方向沒變就不需要動",val:"Ni"}]},
+  {q:"你需要在兩份工作中選擇，薪水一樣，一份穩定、一份有機會但風險高",opts:[
+    {text:"分析兩份工作各自的邏輯和風險結構",val:"Ti"},
+    {text:"哪一份更符合我真正想做的事和內在價值",val:"Fi"},
+    {text:"選熟悉的領域，有歷史可以參考比較安心",val:"Si"},
+    {text:"哪一份十年後會把我帶到更想去的地方",val:"Ni"}]},
+  {q:"你在逛街時看到一樣想要的東西，價格相當於三天收入",opts:[
+    {text:"想清楚這個東西是否真的必要，邏輯上說得通嗎",val:"Ti"},
+    {text:"這是否真的是我想要的，還是只是一時衝動",val:"Fi"},
+    {text:"我之前有沒有類似的，這個比原來的更好嗎",val:"Si"},
+    {text:"買這個符合我目前的人生方向和整體計畫嗎",val:"Ni"}]},
+  {q:"朋友分享一個新投資機會，預期報酬相當於三個月收入",opts:[
+    {text:"自己去驗證這個機會背後的邏輯是否說得通",val:"Ti"},
+    {text:"這個投資是否符合我的理念和價值觀",val:"Fi"},
+    {text:"這種機會以前有人做過嗎，有沒有歷史可以參考",val:"Si"},
+    {text:"這個方向十年後會在哪裡，符合我的長期判斷嗎",val:"Ni"}]},
+  {q:"你發現每月固定支出比收入多了相當於五天收入",opts:[
+    {text:"仔細分析每一筆支出的必要性和邏輯",val:"Ti"},
+    {text:"找出哪些支出真的符合我的價值觀，其他考慮刪減",val:"Fi"},
+    {text:"回到以前的消費習慣，那樣比較穩定可控",val:"Si"},
+    {text:"這是一個訊號，需要重新思考整體財務方向",val:"Ni"}]},
+  {q:"你有機會參加一個投資說明會，主題是你不熟悉的領域",opts:[
+    {text:"先自己研究，把基本邏輯搞清楚再去",val:"Ti"},
+    {text:"看看這個領域是否跟我的理念方向一致",val:"Fi"},
+    {text:"這不是我熟悉的領域，先觀望等更多資訊",val:"Si"},
+    {text:"研究一下這個領域在我長期藍圖裡有沒有位置",val:"Ni"}]},
+  {q:"你達成財務目標，存到相當於六個月收入的緊急預備金",opts:[
+    {text:"我當初設定的邏輯和計畫是對的，這驗證了它",val:"Ti"},
+    {text:"這筆錢的存在讓我感到自己在做對的事",val:"Fi"},
+    {text:"財務上有了穩固的基礎，秩序感回來了",val:"Si"},
+    {text:"這個里程碑讓我對長期方向更有把握",val:"Ni"}]}
+];
+const profiles={
+  Te:{label:"外向思考",code:"Te",role:"策略執行者",color:"#185FA5",bg:"#E6F1FB",border:"#B5D4F4",text:"#0C447C",
+    desc:"金錢對你來說是達成目標的工具。你重視效率與成果，習慣把財務系統化、可衡量化。做決策時傾向快速分析、果斷行動，對績效和數字有天然的敏感度。",
+    strengths:["決策果斷","善於建立財務系統","目標導向","成本效益意識強"],
+    risks:["可能忽略情緒成本","在壓力下過度追逐數字","難以止損"],
+    tip:"最需要注意的是「沉沒成本謬誤」——當一個決策已被數字證明錯誤時，你仍可能因為投入過多而難以止損。"},
+  Fe:{label:"外向情感",code:"Fe",role:"關係守護者",color:"#993556",bg:"#FBEAF0",border:"#F4C0D1",text:"#72243E",
+    desc:"金錢在你心裡是連結與照顧的工具。你對家人和重要關係的財務需求高度敏感，財務決策時會優先考慮對關係的影響。",
+    strengths:["重視家庭財務責任","人際協調能力強","有強烈的利他動機","善於建立信任"],
+    risks:["容易為維持和諧犧牲財務利益","難以拒絕他人的金錢請求","從眾效應強"],
+    tip:"最需要警覺的是「心理帳戶偏誤」——你容易為不同關係設立不同的心理帳戶，導致資金效率降低，甚至模糊財務邊界。"},
+  Se:{label:"外向實感",code:"Se",role:"即時感應器",color:"#993C1D",bg:"#FAECE7",border:"#F5C4B3",text:"#712B13",
+    desc:"金錢的價值對你來說必須在當下感受得到。你對市場即時變化有天然敏感度，能快速捕捉機會訊號。親眼看到、實際感受過是你建立信任的方式。",
+    strengths:["反應靈活、進出果決","對即時訊號敏感","行動力強","善用當下機會"],
+    risks:["容易衝動短線決策","受近期偏誤影響大","忽略長期配置紀律"],
+    tip:"最需要警覺的是「可得性偏誤」——最近看到的漲跌訊息會大幅影響你對機率的判斷，讓你高估近期趨勢延續的可能性。"},
+  Ne:{label:"外向直覺",code:"Ne",role:"機會探索者",color:"#0F6E56",bg:"#E1F5EE",border:"#9FE1CB",text:"#085041",
+    desc:"金錢是你開創可能性的能量。你對新機會和未來趨勢有天然嗅覺，永遠在尋找下一個值得布局的方向。你的財務思維創意多元，能看到別人還沒看到的機會。",
+    strengths:["前瞻視野廣","對新趨勢敏感","創意多元","能看到潛在機會"],
+    risks:["計畫多於執行","投資過度分散","容易受樂觀偏誤影響"],
+    tip:"最需要警覺的是「代表性啟發法」——當一個標的符合你對未來趨勢的想像時，你可能忽略統計基礎率，對成功機率過度樂觀。"},
+  Ti:{label:"內向思考",code:"Ti",role:"精算分析師",color:"#3C3489",bg:"#EEEDFE",border:"#CECBF6",text:"#26215C",
+    desc:"在完全理解邏輯之前，你不輕易行動。你需要在內心建構一套完整的框架，確認每個環節都說得通才感到安心。這讓你在識破財務陷阱上有獨特的優勢。",
+    strengths:["邏輯嚴謹","善於發現風險漏洞","不容易被話術說服","獨立判斷能力強"],
+    risks:["容易陷入分析癱瘓","決策時間過長","過度依賴自己的框架"],
+    tip:"最需要注意的是「錨定效應」——一旦你在心裡建立了某個估值或判斷，即使外部條件改變，也很難更新那個錨點。"},
+  Fi:{label:"內向情感",code:"Fi",role:"價值守門人",color:"#854F0B",bg:"#FAEEDA",border:"#FAC775",text:"#412402",
+    desc:"你的財務決策必須符合內在的道德羅盤。金錢是表達價值觀的方式，不只是數字。你對「這筆錢用得有沒有意義」極度敏感。",
+    strengths:["決策有深層價值依據","不容易被潮流左右","有清晰的財務倫理觀","長期堅守信念一致的標的"],
+    risks:["可能因價值觀拒絕合理報酬","容易有確認偏誤","猶豫期過長"],
+    tip:"最需要注意的是「確認偏誤」——當一個標的符合你的價值觀時，你可能只願意看見優點，對財務基本面的缺陷視而不見。"},
+  Si:{label:"內向實感",code:"Si",role:"穩定秩序守護者",color:"#27500A",bg:"#EAF3DE",border:"#C0DD97",text:"#173404",
+    desc:"安全感是你財務決策的核心。你重視可預測性、熟悉感和歷史延續性，傾向選擇經過驗證的方式。你的財務紀律往往很強，基礎扎實。",
+    strengths:["儲蓄紀律強","風控意識高","不容易被短期誘惑左右","財務基礎扎實"],
+    risks:["容易受本土偏誤限制","對新事物過度謹慎","可能錯失成長機會"],
+    tip:"最需要注意的是「現狀偏誤」——即使某個既有安排已不再最佳，你也會因為熟悉感而不願改變，可能讓你長期持有效率偏低的資產。"},
+  Ni:{label:"內向直覺",code:"Ni",role:"長線戰略家",color:"#444441",bg:"#F1EFE8",border:"#D3D1C7",text:"#2C2C2A",
+    desc:"你的財務思考天然以終局為導向。你不在乎短期波動，在乎的是這個決策十年後會把你帶到哪裡。金錢是實現長期人生藍圖的工具。",
+    strengths:["抗壓性強、長線定力佳","宏觀整合能力強","不被短期雜訊干擾","對人生方向有清晰感"],
+    risks:["可能忽略短期現金流","對細節執行缺乏耐心","確信感過強時容易閉鎖"],
+    tip:"最需要注意的是「過度確信偏誤」——當你對某個長期方向深信不疑時，反面訊號很難進入你的視野，可能導致短期現金流危機被忽視。"}
+};
+let p1Idx=0,p1Ans=[],p1Sel=null;
+let dir='',dirScore={e:0,i:0};
+let p2Qs=[],p2Idx=0,p2Step=0;
+let p2LikeSel=null,p2UnlikeSel=null;
+let funcScores={};
+function start(){
+  document.getElementById('s-intro').classList.remove('active');
+  p1Idx=0;p1Ans=[];p1Sel=null;
+  renderP1();
+  document.getElementById('s-p1').classList.add('active');
+}
+function renderP1(){
+  const q=Q1[p1Idx];
+  document.getElementById('p1-label').textContent='第 '+(p1Idx+1)+' 題，共 3 題';
+  document.getElementById('p1-prog').style.width=(((p1Idx+1)/3)*100)+'%';
+  document.getElementById('p1-q').textContent=q.text;
+  document.getElementById('p1-back').style.visibility=p1Idx===0?'hidden':'visible';
+  document.getElementById('p1-next').disabled=true;
+  document.getElementById('p1-next').textContent=p1Idx===2?'查看能量方向':'下一題';
+  const saved=p1Ans[p1Idx];
+  const opts=document.getElementById('p1-opts');
+  opts.innerHTML='';
+  [{letter:'A',d:q.a},{letter:'B',d:q.b}].forEach(function(item){
+    const el=document.createElement('div');
+    el.className='opt'+(saved===item.d.val?' like':'');
+    el.innerHTML='<span class="opt-letter">'+item.letter+'</span><span class="opt-text">'+item.d.text+'</span>';
+    el.onclick=function(){
+      p1Sel=item.d.val;
+      document.querySelectorAll('#p1-opts .opt').forEach(function(e){e.classList.remove('like');});
+      el.classList.add('like');
+      document.getElementById('p1-next').disabled=false;
+    };
+    opts.appendChild(el);
+  });
+  if(saved){p1Sel=saved;document.getElementById('p1-next').disabled=false;}
+}
+function p1Back(){if(p1Idx>0){p1Idx--;p1Sel=p1Ans[p1Idx]||null;renderP1();}}
+function p1Next(){
+  if(!p1Sel)return;
+  p1Ans[p1Idx]=p1Sel;
+  if(p1Idx<2){p1Idx++;p1Sel=p1Ans[p1Idx]||null;renderP1();}
+  else{
+    dirScore={e:0,i:0};
+    p1Ans.forEach(function(v){dirScore[v]++;});
+    dir=dirScore.e>=dirScore.i?'e':'i';
+    showTrans();
+  }
+}
+function showTrans(){
+  document.getElementById('s-p1').classList.remove('active');
+  const isE=dir==='e';
+  const badge=document.getElementById('trans-badge');
+  badge.textContent=isE?'外向傾向 '+dirScore.e+'/3':'內向傾向 '+dirScore.i+'/3';
+  badge.style.cssText=isE?'background:#E6F1FB;color:#0C447C;border:0.5px solid #B5D4F4':'background:#EAF3DE;color:#27500A;border:0.5px solid #C0DD97';
+  document.getElementById('trans-text').textContent=isE?
+    '你在金錢財務上的能量傾向是外向的——金錢的意義需要透過與外部世界的互動、分享或影響才能完整實現。接下來 8 題將進一步找出你的主導功能。':
+    '你在金錢財務上的能量傾向是內向的——金錢的滿足感可以在內部世界自給自足，不需要外部認同才能感到完整。接下來 8 題將進一步找出你的主導功能。';
+  document.getElementById('e-bar').style.width=Math.round((dirScore.e/3)*100)+'%';
+  document.getElementById('i-bar').style.width=Math.round((dirScore.i/3)*100)+'%';
+  document.getElementById('e-val').textContent=dirScore.e+'/3';
+  document.getElementById('i-val').textContent=dirScore.i+'/3';
+  document.getElementById('s-trans').classList.add('active');
+}
+function startP2(){
+  document.getElementById('s-trans').classList.remove('active');
+  p2Qs=dir==='e'?Q2e:Q2i;
+  funcScores={};
+  (dir==='e'?['Te','Fe','Se','Ne']:['Ti','Fi','Si','Ni']).forEach(function(k){funcScores[k]=0;});
+  p2Idx=0;p2Step=0;p2LikeSel=null;p2UnlikeSel=null;
+  renderP2();
+  document.getElementById('s-p2').classList.add('active');
+}
+function renderP2(){
+  const q=p2Qs[p2Idx];
+  const isLike=p2Step===0;
+  const total=p2Qs.length*2;
+  const current=p2Idx*2+(isLike?1:2);
+  document.getElementById('p2-label').textContent='題目 '+(p2Idx+1)+'／'+p2Qs.length+'　步驟 '+(isLike?1:2)+'／2';
+  document.getElementById('p2-prog').style.width=Math.round((current/total)*100)+'%';
+  document.getElementById('p2-q').textContent=q.q;
+  const sl=document.getElementById('step-label');
+  sl.textContent=isLike?'最像你的第一個念頭是？':'最不像你的是？';
+  sl.className='step-label '+(isLike?'step-like':'step-unlike');
+  document.getElementById('p2-back').style.visibility=(p2Idx===0&&isLike)?'hidden':'visible';
+  const nextBtn=document.getElementById('p2-next');
+  nextBtn.textContent=(p2Idx===p2Qs.length-1&&!isLike)?'查看結果 →':'下一步';
+  const alreadySelected=isLike?(p2LikeSel!==null):(p2UnlikeSel!==null);
+  nextBtn.disabled=!alreadySelected;
+  const opts=document.getElementById('p2-opts');
+  opts.innerHTML='';
+  const letters=['A','B','C','D'];
+  q.opts.forEach(function(opt,i){
+    const el=document.createElement('div');
+    const isLiked=opt.val===p2LikeSel;
+    const isSelected=isLike?(p2LikeSel===opt.val):(p2UnlikeSel===opt.val);
+    let cls='opt';
+    if(isSelected) cls+=isLike?' like':' unlike';
+    if(!isLike&&isLiked) cls+=' disabled';
+    el.className=cls;
+    el.innerHTML='<span class="opt-letter">'+letters[i]+'</span><span class="opt-text">'+opt.text+'</span>';
+    el.onclick=function(){
+      if(!isLike&&isLiked) return;
+      if(isLike){p2LikeSel=opt.val;}
+      else{p2UnlikeSel=opt.val;}
+      document.getElementById('p2-next').disabled=false;
+      renderP2();
+    };
+    opts.appendChild(el);
+  });
+}
+function p2Back(){
+  if(p2Step===1){
+    funcScores[p2LikeSel]-=2;
+    p2Step=0;p2UnlikeSel=null;renderP2();
+  } else if(p2Idx>0){
+    p2Idx--;p2Step=1;p2LikeSel=null;p2UnlikeSel=null;renderP2();
+  }
+}
+function p2Next(){
+  if(p2Step===0){
+    if(!p2LikeSel)return;
+    funcScores[p2LikeSel]+=2;
+    p2Step=1;p2UnlikeSel=null;renderP2();
+  } else {
+    if(!p2UnlikeSel)return;
+    funcScores[p2UnlikeSel]-=1;
+    if(p2Idx<p2Qs.length-1){
+      p2Idx++;p2Step=0;p2LikeSel=null;p2UnlikeSel=null;renderP2();
+    } else {showResult();}
+  }
+}
+function showResult(){
+  document.getElementById('s-p2').classList.remove('active');
+  const sorted=Object.entries(funcScores).sort(function(a,b){return b[1]-a[1];});
+  const top=sorted[0],second=sorted[1];
+  const diff=top[1]-second[1];
+  const topCode=top[0];
+  const p=profiles[topCode];
+  const minS=-8,range=24;
+  let sigHtml='';
+  if(diff>=4){
+    sigHtml='<div class="sig-box" style="border-color:'+p.border+';background:'+p.bg+'"><p style="color:'+p.text+'">主導功能顯著（領先 '+diff+' 分）——你在金錢財務上的心理結構相當清晰，'+p.label+'是你一致且穩定的主導方式。</p></div>';
+  } else if(diff>=2){
+    const s=profiles[second[0]];
+    sigHtml='<div class="sig-box"><p>偏向'+p.label+'，但與'+s.label+'（'+s.code+'）差距不大（領先 '+diff+' 分）。你的主導功能明顯，但'+s.code+'的聲音也時常出現，尤其在壓力或情緒主導時。</p></div>';
+  } else {
+    const s=profiles[second[0]];
+    sigHtml='<div class="sig-box" style="border-color:#FAC775;background:#FAEEDA"><p style="color:#633806">雙主導型：'+p.label+'（'+topCode+'）與'+s.label+'（'+second[0]+'）分數非常接近（差距僅 '+diff+' 分）。這兩種功能在你的金錢決策中同時運作，有時會出現拉鋸或搖擺，這本身就是你性格結構的一部分。</p></div>';
+  }
+  const bars=sorted.map(function(item){
+    const code=item[0],val=item[1];
+    const isTop=code===topCode;
+    const pct=Math.round(((val-minS)/range)*100);
+    return '<div class="bar-row"><span class="bar-code">'+code+'</span><div class="bar-track"><div class="bar-fill" style="width:'+Math.max(0,pct)+'%;background:'+(isTop?p.color:'#ccc')+'"></div></div><span class="bar-num">'+val+'</span><span class="bar-role">'+profiles[code].role+'</span></div>';
+  }).join('');
+  const dirLabel=dir==='e'?'外向 '+dirScore.e+'/3':'內向 '+dirScore.i+'/3';
+  const dirColor=dir==='e'?'color:#0C447C;background:#E6F1FB;border-color:#B5D4F4':'color:#27500A;background:#EAF3DE;border-color:#C0DD97';
+  document.getElementById('result-body').innerHTML=
+    '<p class="eyebrow">你的 MFD 金錢財務性格</p>'+
+    '<span class="result-badge" style="background:'+p.bg+';color:'+p.text+';border:0.5px solid '+p.border+'">'+p.label+' · '+p.code+'</span>'+
+    '<p class="result-title">'+p.role+'</p>'+
+    '<p class="result-role" style="color:'+p.color+'">主導功能：'+p.label+'（'+p.code+'）</p>'+
+    sigHtml+
+    '<p class="result-desc">'+p.desc+'</p>'+
+    '<p class="slabel">財務優勢</p>'+
+    '<div class="tags">'+p.strengths.map(function(s){return '<span class="tag g">'+s+'</span>';}).join('')+'</div>'+
+    '<p class="slabel">需要警覺的財務盲區</p>'+
+    '<div class="tags">'+p.risks.map(function(r){return '<span class="tag r">'+r+'</span>';}).join('')+'</div>'+
+    '<p class="slabel" style="margin-bottom:0.5rem">給你的提醒</p>'+
+    '<div class="tip-box"><p>'+p.tip+'</p></div>'+
+    '<hr class="divider">'+
+    '<p class="slabel">能量方向</p>'+
+    '<div style="margin-bottom:1.25rem"><span class="tag" style="'+dirColor+';border-width:0.5px">'+dirLabel+'</span></div>'+
+    '<p class="slabel">功能傾向分佈</p>'+
+    '<div class="bars">'+bars+'</div>';
+  document.getElementById('s-result').classList.add('active');
+}
+function restart(){
+  document.getElementById('s-result').classList.remove('active');
+  p1Idx=0;p1Ans=[];p1Sel=null;
+  renderP1();
+  document.getElementById('s-p1').classList.add('active');
+}
+</script>
+</body>
+</html>
