@@ -1,0 +1,992 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>金錢財務性格MFD 檢測站｜設計者 Hank Huang</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Helvetica Neue',sans-serif;background:#f5f3ef;color:#1a1a1a;min-height:100vh;padding:1rem 0.75rem}
+.wrap{max-width:640px;margin:0 auto;background:white;border-radius:20px;padding:2rem 1.5rem;min-height:calc(100vh - 2rem)}
+.screen{display:none}
+.screen.active{display:block}
+
+.site-header{font-size:11px;letter-spacing:0.08em;color:#aaa;margin-bottom:2rem;padding-bottom:1rem;border-bottom:0.5px solid #eee}
+.site-header strong{color:#555}
+
+.intro-title{font-size:26px;font-weight:600;color:#1a1a1a;line-height:1.35;margin-bottom:1rem}
+.intro-body{font-size:15px;color:#555;line-height:1.8;margin-bottom:1.5rem}
+.intro-meta{font-size:13px;color:#aaa;margin-bottom:2rem;line-height:1.7}
+.id-label{font-size:13px;font-weight:500;color:#333;margin-bottom:0.75rem}
+.id-btns{display:flex;gap:10px;margin-bottom:2rem;flex-wrap:wrap}
+.id-btn{flex:1;min-width:140px;border:1.5px solid #e0e0e0;background:white;border-radius:12px;padding:1rem;cursor:pointer;transition:all 0.2s;text-align:left}
+.id-btn:hover{border-color:#1D9E75;background:#f0faf6}
+.id-btn.selected{border-color:#1D9E75;background:#E1F5EE}
+.id-btn-icon{font-size:20px;margin-bottom:0.4rem}
+.id-btn-title{font-size:15px;font-weight:500;color:#1a1a1a;display:block}
+.id-btn-sub{font-size:12px;color:#888;display:block;margin-top:2px}
+.id-btn.selected .id-btn-title{color:#0F6E56}
+
+.prog-wrap{margin-bottom:2rem}
+.prog-meta{display:flex;justify-content:space-between;align-items:center;margin-bottom:0.5rem}
+.prog-label{font-size:12px;color:#aaa}
+.prog-phase{font-size:11px;font-weight:500;padding:2px 8px;border-radius:20px;background:#f0f0f0;color:#666}
+.prog-bar{height:3px;background:#eee;border-radius:2px}
+.prog-fill{height:3px;background:#1D9E75;border-radius:2px;transition:width 0.4s ease}
+
+.q-situation{font-size:16px;color:#555;background:#f9f9f9;border-left:3px solid #ddd;padding:0.75rem 1rem;border-radius:0 8px 8px 0;margin-bottom:1rem;line-height:1.75}
+.q-text{font-size:16px;font-weight:600;color:#1a1a1a;line-height:1.65;margin-bottom:0.75rem}
+.step-badge{display:inline-block;font-size:13px;font-weight:500;padding:4px 14px;border-radius:20px;margin-bottom:1rem}
+.step-like{background:#E1F5EE;color:#0F6E56}
+.step-unlike{background:#FEF0E6;color:#994020}
+
+.opts{display:flex;flex-direction:column;gap:9px;margin-bottom:1.5rem}
+.opt{display:flex;align-items:flex-start;gap:12px;border:1px solid #e8e8e8;border-radius:12px;padding:0.85rem 1rem;cursor:pointer;transition:all 0.15s;background:white;-webkit-tap-highlight-color:transparent}
+.opt:hover{border-color:#ccc;background:#fafafa}
+.opt:active{transform:scale(0.99)}
+.opt.like{border:2px solid #1D9E75;background:#E1F5EE}
+.opt.unlike{border:2px solid #D85A30;background:#FEF0E6}
+.opt.disabled{opacity:0.25;pointer-events:none}
+.opt2{display:flex;align-items:flex-start;gap:12px;border:1px solid #e8e8e8;border-radius:12px;padding:0.9rem 1rem;cursor:pointer;transition:all 0.15s;background:white;-webkit-tap-highlight-color:transparent}
+.opt2:hover{border-color:#ccc;background:#fafafa}
+.opt2:active{transform:scale(0.99)}
+.opt2.selected{border:2px solid #1D9E75;background:#E1F5EE}
+.opt-letter{font-size:11px;font-weight:600;color:#bbb;flex-shrink:0;background:#f5f5f5;width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;margin-top:2px}
+.opt.like .opt-letter,.opt2.selected .opt-letter{background:#1D9E75;color:white}
+.opt.unlike .opt-letter{background:#D85A30;color:white}
+.opt-text{font-size:14px;color:#333;line-height:1.65}
+.opt.like .opt-text,.opt2.selected .opt-text{color:#085041;font-weight:500}
+.opt.unlike .opt-text{color:#7a2e15}
+
+.nav{display:flex;justify-content:space-between;align-items:center;margin-top:0.25rem}
+.btn-back{font-size:13px;color:#aaa;background:none;border:none;cursor:pointer;padding:10px 0;transition:color 0.15s}
+.btn-back:hover{color:#555}
+.btn-next{background:#1D9E75;color:white;border:none;border-radius:10px;font-size:15px;font-weight:500;padding:12px 28px;cursor:pointer;transition:all 0.2s}
+.btn-next:hover{background:#0F6E56}
+.btn-next:disabled{background:#ccc;cursor:not-allowed}
+.btn-next:active:not(:disabled){transform:scale(0.98)}
+
+.trans-wrap{padding:1rem 0}
+.trans-title{font-size:20px;font-weight:600;color:#1a1a1a;margin-bottom:0.5rem}
+.trans-sub{font-size:15px;color:#555;line-height:1.8;margin-bottom:2rem}
+.dir-badge{display:inline-flex;align-items:center;padding:8px 16px;border-radius:20px;margin-bottom:1.5rem;font-size:14px;font-weight:500}
+.dir-bars-wrap{display:flex;align-items:center;gap:12px;margin-bottom:2rem}
+.dir-bar-item{flex:1;text-align:center}
+.dir-bar-label{font-size:11px;color:#aaa;margin-bottom:4px}
+.dir-bar-track{height:8px;background:#eee;border-radius:4px;overflow:hidden;margin-bottom:4px}
+.dir-bar-fill{height:8px;border-radius:4px;transition:width 0.8s ease}
+.dir-bar-val{font-size:13px;font-weight:600}
+.dir-vs{font-size:12px;color:#ccc;padding-top:8px}
+
+/* 決勝題頁 */
+.tb-intro{font-size:13px;color:#888;background:#FFF8E6;border:1px solid #F0D060;border-radius:10px;padding:0.85rem 1rem;margin-bottom:1.5rem;line-height:1.7}
+.tb-cards{display:flex;flex-direction:column;gap:12px;margin-bottom:1.5rem}
+.tb-card{border:1.5px solid #e8e8e8;border-radius:14px;padding:1.1rem 1.25rem;cursor:pointer;transition:all 0.15s;background:white;-webkit-tap-highlight-color:transparent}
+.tb-card:hover{border-color:#ccc;background:#fafafa}
+.tb-card:active{transform:scale(0.99)}
+.tb-card.selected{border-width:2px}
+.tb-card-label{font-size:11px;font-weight:600;letter-spacing:0.08em;margin-bottom:0.4rem}
+.tb-card-name{font-size:17px;font-weight:600;color:#1a1a1a;margin-bottom:0.35rem}
+.tb-card-desc{font-size:14px;color:#555;line-height:1.7}
+
+/* 結果頁 */
+.result-eyebrow{font-size:11px;letter-spacing:0.1em;color:#aaa;margin-bottom:0.5rem}
+.result-badge{display:inline-block;font-size:13px;font-weight:600;padding:5px 14px;border-radius:8px;margin-bottom:0.75rem}
+.result-main-title{font-size:24px;font-weight:700;color:#1a1a1a;margin-bottom:0.2rem}
+.result-role{font-size:15px;font-weight:500;margin-bottom:0.25rem}
+.result-code{font-size:13px;color:#aaa;margin-bottom:1.25rem;line-height:1.7}
+.sig-box{padding:0.9rem 1.1rem;border-radius:12px;border:1px solid #e8e8e8;margin-bottom:1.5rem;line-height:1.7;font-size:14px}
+.section-title{font-size:11px;letter-spacing:0.1em;color:#aaa;margin-bottom:0.6rem;font-weight:600;text-transform:uppercase}
+.result-section{margin-bottom:1.5rem}
+.tags{display:flex;flex-wrap:wrap;gap:7px}
+.tag-g{font-size:13px;padding:5px 13px;border-radius:20px;line-height:1.5;background:#E1F5EE;color:#0F6E56;border:1px solid #9FE1CB}
+.tag-r{font-size:13px;padding:5px 13px;border-radius:20px;line-height:1.5;background:#FEF0E6;color:#994020;border:1px solid #F5C4B3}
+.tip-box{border-left:3px solid #e0e0e0;padding:0.9rem 1.1rem;background:#f9f9f9;border-radius:0 10px 10px 0;font-size:14px;color:#555;line-height:1.85;margin-bottom:1.5rem}
+.bar-section{margin-bottom:1.75rem}
+.bar-chart{display:flex;flex-direction:column;gap:9px}
+.bar-item{display:flex;align-items:center;gap:10px}
+.bar-item-label{font-size:13px;font-weight:600;color:#555;width:32px;flex-shrink:0;text-align:right}
+.bar-item-label.dom{color:#1a1a1a;font-size:14px}
+.bar-item-track{flex:1;height:24px;background:#f0f0f0;border-radius:6px;overflow:hidden}
+.bar-item-fill{height:24px;border-radius:6px;display:flex;align-items:center;justify-content:flex-end;padding-right:8px;min-width:24px;transition:width 1s ease}
+.bar-item-val{font-size:11px;font-weight:700;color:white}
+.bar-item-role{font-size:12px;color:#aaa;width:100px;flex-shrink:0;line-height:1.3}
+.bar-item-role.dom{color:#555;font-weight:500}
+.divider{border:none;border-top:1px solid #eee;margin:1.5rem 0}
+.pdf-btn{width:100%;background:#1D9E75;color:white;border:none;border-radius:10px;font-size:15px;font-weight:500;padding:14px;cursor:pointer;margin-bottom:10px;display:flex;align-items:center;justify-content:center;gap:8px;-webkit-tap-highlight-color:transparent}
+.pdf-btn:hover{background:#0F6E56}
+.pdf-btn:active{transform:scale(0.99)}
+.restart-btn{width:100%;border:1.5px solid #e0e0e0;background:white;color:#555;border-radius:10px;font-size:14px;padding:12px;cursor:pointer;transition:all 0.15s;margin-top:0.5rem}
+.restart-btn:hover{background:#f5f5f5}
+.footer-credit{text-align:center;font-size:11px;color:#ccc;margin-top:1.5rem;padding-top:1rem;border-top:0.5px solid #eee}
+
+@media print{
+  body{background:white!important;padding:0!important}
+  .wrap{border-radius:0!important;padding:1.5rem!important;min-height:auto!important;max-width:100%!important}
+  .screen{display:none!important}
+  #s-result{display:block!important}
+  .no-print{display:none!important}
+  .site-header{border-bottom:1px solid #eee!important}
+  .footer-credit{display:block!important}
+  .bar-item-fill,.tag-g,.tag-r,.sig-box,.tip-box,.result-badge{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<!-- 介紹頁 -->
+<div class="screen active" id="s-intro">
+  <div class="site-header">金錢財務性格MFD 檢測站 &nbsp;·&nbsp; <strong>設計者 Hank Huang</strong></div>
+  <h1 class="intro-title">你跟金錢的關係，<br>比你以為的更有結構</h1>
+  <p class="intro-body">每個人面對金錢的方式，都由深層的心理結構決定。這份測驗根據榮格心理類型理論，找出你的金錢財務主導功能（MFD）——幫助你理解自己為什麼這樣對待金錢。</p>
+  <p class="intro-meta">共 15 題 · 分三階段 · 約 6 分鐘<br>請選擇最接近你真實反應的答案，不需要想太久</p>
+  <p class="id-label">請先選擇你的身份：</p>
+  <div class="id-btns">
+    <button class="id-btn" id="btn-student" onclick="selectId('student')">
+      <div class="id-btn-icon">🎓</div>
+      <span class="id-btn-title">學生</span>
+      <span class="id-btn-sub">尚未就業，有零用錢或打工收入</span>
+    </button>
+    <button class="id-btn" id="btn-adult" onclick="selectId('adult')">
+      <div class="id-btn-icon">💼</div>
+      <span class="id-btn-title">成年人</span>
+      <span class="id-btn-sub">有工作收入或依賴家庭總收入</span>
+    </button>
+  </div>
+  <button class="btn-next" id="btn-start" onclick="startQuiz()" disabled style="width:100%">開始測驗</button>
+</div>
+
+<!-- 第一階段 -->
+<div class="screen" id="s-p1">
+  <div class="site-header">金錢財務性格MFD 檢測站 &nbsp;·&nbsp; <strong>設計者 Hank Huang</strong></div>
+  <div class="prog-wrap">
+    <div class="prog-meta">
+      <span class="prog-label" id="p1-label">第 1 題，共 3 題</span>
+      <span class="prog-phase">第一階段：能量方向</span>
+    </div>
+    <div class="prog-bar"><div class="prog-fill" id="p1-prog" style="width:33%"></div></div>
+  </div>
+  <p class="q-situation" id="p1-sit"></p>
+  <p class="q-text" id="p1-q" style="display:none"></p>
+  <div class="opts" id="p1-opts" style="gap:10px"></div>
+  <div class="nav">
+    <button class="btn-back" id="p1-back" onclick="p1Back()">← 上一題</button>
+    <button class="btn-next" id="p1-next" onclick="p1Next()" disabled>下一題</button>
+  </div>
+</div>
+
+<!-- 過渡頁 -->
+<div class="screen" id="s-trans">
+  <div class="site-header">金錢財務性格MFD 檢測站 &nbsp;·&nbsp; <strong>設計者 Hank Huang</strong></div>
+  <div class="trans-wrap">
+    <p style="font-size:11px;letter-spacing:0.08em;color:#aaa;margin-bottom:0.5rem">第一階段完成</p>
+    <p class="trans-title" id="trans-title"></p>
+    <div class="dir-badge" id="trans-badge"></div>
+    <p class="trans-sub" id="trans-text"></p>
+    <div class="dir-bars-wrap">
+      <div class="dir-bar-item">
+        <p class="dir-bar-label">外向傾向</p>
+        <div class="dir-bar-track"><div class="dir-bar-fill" id="e-bar" style="background:#185FA5"></div></div>
+        <p class="dir-bar-val" id="e-val" style="color:#185FA5"></p>
+      </div>
+      <div class="dir-vs">vs</div>
+      <div class="dir-bar-item">
+        <p class="dir-bar-label">內向傾向</p>
+        <div class="dir-bar-track"><div class="dir-bar-fill" id="i-bar" style="background:#1D9E75"></div></div>
+        <p class="dir-bar-val" id="i-val" style="color:#1D9E75"></p>
+      </div>
+    </div>
+    <button class="btn-next" onclick="startP2()" style="width:100%">進入第二階段 →</button>
+  </div>
+</div>
+
+<!-- 第二階段 -->
+<div class="screen" id="s-p2">
+  <div class="site-header">金錢財務性格MFD 檢測站 &nbsp;·&nbsp; <strong>設計者 Hank Huang</strong></div>
+  <div class="prog-wrap">
+    <div class="prog-meta">
+      <span class="prog-label" id="p2-label">題目 1／6　步驟 1／2</span>
+      <span class="prog-phase">第二階段：判斷方式</span>
+    </div>
+    <div class="prog-bar"><div class="prog-fill" id="p2-prog" style="width:5%"></div></div>
+  </div>
+  <p class="q-situation" id="p2-sit"></p>
+  <p class="q-text" id="p2-q"></p>
+  <span class="step-badge step-like" id="p2-badge">最像你的是？</span>
+  <div class="opts" id="p2-opts"></div>
+  <div class="nav">
+    <button class="btn-back" id="p2-back" onclick="p2Back()">← 上一步</button>
+    <button class="btn-next" id="p2-next" onclick="p2Next()" disabled>下一步</button>
+  </div>
+</div>
+
+<!-- 第三階段 -->
+<div class="screen" id="s-p3">
+  <div class="site-header">金錢財務性格MFD 檢測站 &nbsp;·&nbsp; <strong>設計者 Hank Huang</strong></div>
+  <div class="prog-wrap">
+    <div class="prog-meta">
+      <span class="prog-label" id="p3-label">題目 1／6　步驟 1／2</span>
+      <span class="prog-phase">第三階段：感知方式</span>
+    </div>
+    <div class="prog-bar"><div class="prog-fill" id="p3-prog" style="width:5%"></div></div>
+  </div>
+  <p class="q-situation" id="p3-sit"></p>
+  <p class="q-text" id="p3-q"></p>
+  <span class="step-badge step-like" id="p3-badge">最像你的是？</span>
+  <div class="opts" id="p3-opts"></div>
+  <div class="nav">
+    <button class="btn-back" id="p3-back" onclick="p3Back()">← 上一步</button>
+    <button class="btn-next" id="p3-next" onclick="p3Next()" disabled>下一步</button>
+  </div>
+</div>
+
+<!-- 決勝題頁 -->
+<div class="screen" id="s-tb">
+  <div class="site-header">金錢財務性格MFD 檢測站 &nbsp;·&nbsp; <strong>設計者 Hank Huang</strong></div>
+  <div class="prog-wrap">
+    <div class="prog-meta">
+      <span class="prog-label">決勝題</span>
+      <span class="prog-phase">進一步確認</span>
+    </div>
+    <div class="prog-bar"><div class="prog-fill" style="width:95%"></div></div>
+  </div>
+  <div class="tb-intro" id="tb-intro"></div>
+  <p class="q-text" id="tb-q"></p>
+  <div class="tb-cards" id="tb-cards"></div>
+  <div class="nav">
+    <span></span>
+    <button class="btn-next" id="tb-next" onclick="tbNext()" disabled>查看結果 →</button>
+  </div>
+</div>
+
+<!-- 結果頁 -->
+<div class="screen" id="s-result">
+  <div class="site-header">金錢財務性格MFD 檢測站 &nbsp;·&nbsp; <strong>設計者 Hank Huang</strong></div>
+  <div id="result-body"></div>
+  <hr class="divider no-print">
+  <button class="pdf-btn no-print" onclick="savePDF()">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
+    儲存為 PDF
+  </button>
+  <button class="restart-btn no-print" onclick="restart()">重新測驗</button>
+  <p class="footer-credit">金錢財務性格MFD 檢測站 · 設計者 Hank Huang</p>
+</div>
+
+</div>
+<script>
+// ── 決勝題資料 ────────────────────────────────────────────
+// 每組並列時顯示的決勝題：兩張卡片讓受測者自己選更像自己的
+var tiebreakers = {
+  "Ti-Si": {
+    q: "關於金錢決策，下面哪一種描述更像你平常的狀態？",
+    cards: [
+      { code: "Ti", name: "我需要把邏輯想清楚",
+        desc: "做任何財務決定前，我需要在心裡把每個環節都想通，確認推理過程沒有漏洞，才能放心行動。" },
+      { code: "Si", name: "我需要有前例可以參考",
+        desc: "做財務決定時，我需要知道以前有沒有人這樣做過、結果如何，有歷史依據我才能感到安心。" }
+    ]
+  },
+  "Ti-Fi": {
+    q: "關於金錢決策，下面哪一種描述更像你平常的狀態？",
+    cards: [
+      { code: "Ti", name: "我需要邏輯說得通",
+        desc: "做財務決定前，我需要確認整個決策的邏輯是否自洽，每個環節都能說得通，才能行動。" },
+      { code: "Fi", name: "我需要符合自己的價值觀",
+        desc: "做財務決定時，我最在意這個選擇是否符合我內心真正在乎的事，即使別人不理解也沒關係。" }
+    ]
+  },
+  "Te-Fe": {
+    q: "關於金錢決策，下面哪一種描述更像你平常的狀態？",
+    cards: [
+      { code: "Te", name: "我最在意效益和成果",
+        desc: "做財務決定時，我優先看這個選擇能帶來什麼具體成果，用數字和效益來判斷。" },
+      { code: "Fe", name: "我最在意關係和感受",
+        desc: "做財務決定時，我優先考慮這個選擇對家人和重要的人有什麼影響，讓關係和諧最重要。" }
+    ]
+  },
+  "Te-Ti": {
+    q: "關於金錢決策，下面哪一種描述更像你平常的狀態？",
+    cards: [
+      { code: "Te", name: "我看重外部成果",
+        desc: "做財務決定時，我最在意這個選擇能帶來什麼具體的外部成果和效益，越有產出越好。" },
+      { code: "Ti", name: "我看重內部邏輯",
+        desc: "做財務決定時，我最在意這個選擇在我自己的邏輯框架裡是否說得通，內部一致性最重要。" }
+    ]
+  },
+  "Fe-Fi": {
+    q: "關於金錢決策，下面哪一種描述更像你平常的狀態？",
+    cards: [
+      { code: "Fe", name: "金錢是照顧他人的工具",
+        desc: "我對金錢的感受，很大程度取決於它能不能用來幫助或照顧重要的人，讓關係更緊密。" },
+      { code: "Fi", name: "金錢是表達價值觀的方式",
+        desc: "我對金錢的感受，很大程度取決於它是否用在我真正認同的地方，符合我的內在標準。" }
+    ]
+  },
+  "Se-Ne": {
+    q: "關於金錢決策，下面哪一種描述更像你平常的狀態？",
+    cards: [
+      { code: "Se", name: "我需要親身感受",
+        desc: "評估一個財務機會時，我需要親眼看到、實際感受過，有第一手體驗才能信任它。" },
+      { code: "Ne", name: "我需要看到可能性",
+        desc: "評估一個財務機會時，我更關注它背後有哪些未來的可能性和延伸方向，潛力比現況更重要。" }
+    ]
+  },
+  "Se-Si": {
+    q: "關於金錢決策，下面哪一種描述更像你平常的狀態？",
+    cards: [
+      { code: "Se", name: "我活在當下的感受裡",
+        desc: "做財務決定時，當下的感覺和即時的市場訊號對我很重要，感覺對了才能行動。" },
+      { code: "Si", name: "我活在過去的經驗裡",
+        desc: "做財務決定時，過去的經驗和歷史前例對我很重要，熟悉的方式讓我感到安心。" }
+    ]
+  },
+  "Ne-Ni": {
+    q: "關於金錢決策，下面哪一種描述更像你平常的狀態？",
+    cards: [
+      { code: "Ne", name: "我喜歡探索各種可能",
+        desc: "面對財務機會時，我喜歡同時探索多個方向，看看有哪些新的可能性，多元比集中更讓我興奮。" },
+      { code: "Ni", name: "我專注在長期的方向",
+        desc: "面對財務機會時，我更在意這個選擇十年後會把我帶到哪裡，長期方向比眼前多樣性更重要。" }
+    ]
+  },
+  "Si-Ni": {
+    q: "關於金錢決策，下面哪一種描述更像你平常的狀態？",
+    cards: [
+      { code: "Si", name: "安全感來自歷史與秩序",
+        desc: "我的財務安全感來自於熟悉的方式和可預測的秩序，有前例可循我才能放心。" },
+      { code: "Ni", name: "安全感來自長期方向",
+        desc: "我的財務安全感來自於對長期方向的清晰感，只要大方向對了，短期的波動不影響我。" }
+    ]
+  }
+};
+
+// ── 題目資料 ──────────────────────────────────────────────
+var Q1 = [
+  { sit: { student: "在原本的規劃之外，你多了一筆大約五千元的發票獎金時，你最自然的反應是？", adult: "你這個月收到一筆相當於家庭半個月收入的意外獎金，你最自然的反應是？" },
+    a: { text: "想告訴重要的人，跟他們一起分享快樂", val: "e" },
+    b: { text: "自己知道就夠了，喜歡自己享受這樣的快樂", val: "i" } },
+  { sit: { student: "對於金錢的相關問題，你喜歡？", adult: "對於投資、用錢、存錢的問題，如果手上都已經有了相關的資料，在決定時你喜歡？" },
+    a: { text: "跟別人討論之後，越說越清楚", val: "e" },
+    b: { text: "一個人安靜下來，自己慢慢思考", val: "i" } },
+  { sit: { student: "如果你做了一個讓自己很滿意的財務決定，但沒有人知道，你會覺得？", adult: "如果你做了一個讓自己很滿意的財務決定，但沒有人知道，你會覺得？" },
+    a: { text: "有點可惜，沒人知道讓這份滿足感少了一些", val: "e" },
+    b: { text: "沒關係，自己心裡知道就夠了，這份滿足不需要別人認可", val: "i" } }
+];
+
+var Q2 = [
+  { sit: { student: "你的發票中了一個二獎，獎金四萬元。", adult: "你這個月收到一筆相當於家庭半個月收入的意外獎金。" },
+    text: "你的第一個念頭是？",
+    opts: [
+      { text: "先把每個可能的用途都想清楚，確認邏輯上哪一個最說得通，再行動", val: "Ti" },
+      { text: "想把這筆錢用在真正符合自己價值觀的事情上，不想隨便花掉", val: "Fi" },
+      { text: "想把這筆錢用來為家人或重要的人做一件事，一起分享這份驚喜", val: "Fe" },
+      { text: "先搜集資料，比較幾個用途的成本效益，讓這筆錢發揮最大效果", val: "Te" }
+    ]
+  },
+  { sit: { student: "同學跟你借錢，金額是你一個月零用錢的一半。", adult: "朋友跟你借錢，金額相當於家庭一個月收入。" },
+    text: "你會怎麼做？",
+    opts: [
+      { text: "先想清楚這筆錢借出去，對自己的整體財務邏輯有沒有問題，說得通才借", val: "Ti" },
+      { text: "對方開口了，能幫就幫，不想為了錢讓這段關係變得尷尬", val: "Fe" },
+      { text: "先評估對方的還款能力，確認借出去之後對自己的財務目標影響不大", val: "Te" },
+      { text: "先想想這段關係對自己的意義，以及借了之後自己內心能不能真正接受", val: "Fi" }
+    ]
+  },
+  { sit: { student: "你和同學約好要去遠方聽演唱會，需要合資住飯店，大概一人五千元，後來同學變卦，要你獨自承擔一萬元費用。", adult: "你原本跟朋友約定共同出國旅遊，出國前對方臨時變化，所有房費車費等約五萬元要你獨自承擔。" },
+    text: "你會怎麼處理？",
+    opts: [
+      { text: "想想讓步之後自己內心能不能接受，以及這段關係對自己是否真的重要", val: "Fi" },
+      { text: "對方有困難，就盡量配合，不想為了這筆錢傷了彼此的感情", val: "Fe" },
+      { text: "把當初的約定條件想清楚，確認責任歸屬，必要時找第三人協調", val: "Ti" },
+      { text: "先評估這趟行程對我還有沒有價值，再決定是要全額吸收還是要求對方補償", val: "Te" }
+    ]
+  },
+  { sit: { student: "家人希望你把一筆錢存起來，但你想用來做別的事。", adult: "另一半希望把一筆錢存起來，但你現在對這筆錢其實有其他的用途規劃。" },
+    text: "你會怎麼應對？",
+    opts: [
+      { text: "想想如果沒有配合對方，自己內心會不會感到不安或愧疚", val: "Fi" },
+      { text: "自己先把兩種選擇的邏輯和利弊都想清楚，確認自己的立場後再開口討論", val: "Ti" },
+      { text: "先聽清楚對方的想法，再一起找一個雙方都能接受的方式", val: "Fe" },
+      { text: "用具體的數字和效益說明自己的規劃更合理，讓對方理解", val: "Te" }
+    ]
+  },
+  { sit: { student: "經過計算，你發現每個月都有一筆固定多花出去的零用錢（例如網路遊戲或訂閱費用），其實是非必要的支出。", adult: "經過計算，你發現每個月都有一筆相當於三天收入的固定多餘支出（例如網路影音訂閱費用），其實是非必要的支出。" },
+    text: "你的反應是？",
+    opts: [
+      { text: "問自己這筆錢花在這裡，是不是真的符合自己當下最在乎的事", val: "Fi" },
+      { text: "擔心取消這些服務後，會跟朋友少了共同話題，感覺跟大家的連結少了一些", val: "Fe" },
+      { text: "把這項支出的邏輯想清楚，再看看自己還有沒有其他項目也應該一起檢討", val: "Ti" },
+      { text: "想想這筆錢改用在其他地方，能不能帶來更好的效果或新的滿足", val: "Te" }
+    ]
+  },
+  { sit: { student: "你手上有一筆錢，要在兩件事之間選擇：一件對未來有幫助但不有趣，一件很有趣但不一定有用。", adult: "你在兩個財務計畫之間選擇：一個報酬較高但需要犧牲家庭時間，一個報酬較低但家庭生活比較平衡。" },
+    text: "你最在意的是哪一點？",
+    opts: [
+      { text: "用感覺選擇，選擇讓自己真正覺得值得，符合內心真正在乎的事，不管別人怎麼看", val: "Fi" },
+      { text: "比較兩種選擇所帶來的實際成果和效益，用結果和數字來決定", val: "Te" },
+      { text: "客觀地用邏輯思考，哪個選擇在邏輯上更站得住腳，推理過程沒有明顯的漏洞", val: "Ti" },
+      { text: "優先考慮哪個選擇對家人和重要的人影響更正面，讓關係更穩定", val: "Fe" }
+    ]
+  }
+];
+
+var Q3 = [
+  { sit: { student: "你對於你的零用錢，平時最習慣怎麼用？", adult: "你對於生活費中的雜支項目，平常時怎樣的運用方式？" },
+    text: "你最自然的想法是？",
+    opts: [
+      { text: "每個月都會看看有沒有新的消費可能或產品，嘗試變化", val: "Ne" },
+      { text: "花錢時會想到這筆支出是否符合自己長期想走的方向，不符合的就盡量不花", val: "Ni" },
+      { text: "在商店或電商上，看當下有什麼想要的，感覺對了就用", val: "Se" },
+      { text: "照平時的習慣來，熟悉的方式最安心", val: "Si" }
+    ]
+  },
+  { sit: { student: "朋友說有個方法可以讓你的零用錢增加", adult: "朋友介紹一個投資機會，預期報酬相當於兩個月家庭收入" },
+    text: "你的第一反應是？",
+    opts: [
+      { text: "想想這個方向跟自己長期的規劃合不合，方向對了再說", val: "Ni" },
+      { text: "問問以前有沒有人試過，有歷史前例才安心", val: "Si" },
+      { text: "覺得有趣，想多了解這個機會背後有哪些可能的發展", val: "Ne" },
+      { text: "想親眼看看實際的效果，有具體結果才考慮", val: "Se" }
+    ]
+  },
+  { sit: { student: "你在考慮要不要買一樣從來沒買過的東西", adult: "你在考慮一個從來沒碰過的投資工具（包括股票、保險、債券等）" },
+    text: "你怎麼評估？",
+    opts: [
+      { text: "想想這個東西或工具以後還有哪些其他的可能和用途", val: "Ne" },
+      { text: "實際去看看、感受一下，親身體驗之後再說", val: "Se" },
+      { text: "想想這個選擇跟自己未來的整體方向合不合，能不能放進長期的計畫裡", val: "Ni" },
+      { text: "回想以前購買類似商品的類似經驗，那次結果好不好是重要依據", val: "Si" }
+    ]
+  },
+  { sit: { student: "說到存零用錢這件事，你覺得自己有哪一項弱點，在哪個狀況上最需要注意？", adult: "說到家庭財務規劃這件事，你覺得自己有哪一項弱點，在哪個狀況上最需要注意？" },
+    text: "哪一個最像你？",
+    opts: [
+      { text: "當下看到喜歡的就想用，很難忍住不花", val: "Se" },
+      { text: "大方向想得很清楚，但短期要做什麼、怎麼執行，常常沒有具體行動", val: "Ni" },
+      { text: "腦子裡常常同時冒出很多想法和方向，但不知道從哪個開始執行", val: "Ne" },
+      { text: "習慣照舊有的方式走，就算知道有更好的做法也不太想改變", val: "Si" }
+    ]
+  },
+  { sit: { student: "市場上出現一個新的存錢或理財方式，很多同學都在討論", adult: "市場上出現一個新的投資趨勢，身邊的人都在討論" },
+    text: "你的態度是？",
+    opts: [
+      { text: "直接去試試看，或找到親身使用過的人問清楚，有第一手感受才算數", val: "Se" },
+      { text: "想想這個趨勢跟自己長期的方向有沒有關係", val: "Ni" },
+      { text: "很感興趣，想深入研究這個趨勢背後代表什麼", val: "Ne" },
+      { text: "先觀望，等有更多人試過、有歷史可參考再說", val: "Si" }
+    ]
+  },
+  { sit: { student: "關於零用錢和存錢這件事", adult: "關於家庭財務的管理問題" },
+    text: "你最常有哪種擔心？",
+    opts: [
+      { text: "眼前有好的機會或想做的事，卻因為沒有錢而無法立刻行動", val: "Se" },
+      { text: "萬一有什麼變化，手上沒有足夠的存款怎麼辦", val: "Si" },
+      { text: "一直做一樣的事，沒有趕上變化，錯過了更好的機會", val: "Ne" },
+      { text: "走錯了方向，浪費了時間和資源", val: "Ni" }
+    ]
+  }
+];
+
+// ── 性格資料 ──────────────────────────────────────────────
+var profiles = {
+  Te: { label:"外向思考", code:"Te", role:"策略執行者", jobTitle:"CEO 型",
+    color:"#185FA5", bg:"#E6F1FB", border:"#B5D4F4", text:"#0C447C",
+    desc:"金錢對你來說是達成外部目標的工具。你重視效率與產出，習慣把財務系統化，用數字說話。做決策時傾向快速分析、果斷行動，不喜歡拖泥帶水。",
+    strengths:["決策果斷，執行力強","善於建立財務系統","目標清晰，成本效益意識高","能建立自動化理財機制"],
+    risks:["可能過度追求數字，忽略情緒成本","難以接受止損，容易撐著不認輸","可能忽略對關係和家人的財務影響"],
+    tip:"最需要注意「沉沒成本謬誤」——當一個投資或決策已被數字證明錯誤時，你仍可能因為不甘心而繼續撐著。",
+    comms:"溝通時提供具體數字和效益分析，避免只說「感覺」或「應該」，要有明確的目標和可衡量的成果。" },
+  Fe: { label:"外向情感", code:"Fe", role:"關係守護者", jobTitle:"PR 型",
+    color:"#993556", bg:"#FBEAF0", border:"#F4C0D1", text:"#72243E",
+    desc:"金錢在你心裡是連結與照顧的工具。你對家人和重要關係的財務需求高度敏感，財務決策時會優先考慮「這對大家好不好」，而不是「這對我划不划算」。",
+    strengths:["重視家庭財務責任","善於在金錢衝突中找到共識","有強烈的照顧動機","容易建立財務信任關係"],
+    risks:["容易為維持和諧犧牲自己的財務利益","難以對家人或朋友的金錢請求說不","容易受從眾效應影響"],
+    tip:"最需要警覺「心理帳戶偏誤」——你容易為不同關係設立不同的心理帳戶，導致資金效率降低，甚至模糊財務邊界。",
+    comms:"溝通時先關心對方的感受，再提財務建議。不要一開始就用數字說話，要先建立情感連結。" },
+  Se: { label:"外向實感", code:"Se", role:"即時感應器", jobTitle:"Sales 型",
+    color:"#993C1D", bg:"#FAECE7", border:"#F5C4B3", text:"#712B13",
+    desc:"金錢的價值對你來說必須在當下感受得到。你對市場即時變化有天然敏感度，能快速捕捉機會訊號。「親眼看到、實際感受過」是你建立信任的方式，行動力是你最大的優勢。",
+    strengths:["反應靈活，進出果決","對即時市場訊號敏感","行動力強，不拖延","善於把握當下的機會"],
+    risks:["容易衝動短線決策","受近期事件影響大，高估眼前的趨勢","容易忽略長期配置紀律"],
+    tip:"最需要警覺「可得性偏誤」——最近看到的漲跌訊息會大幅影響你對機率的判斷，讓你高估近期趨勢繼續的可能性。",
+    comms:"溝通時讓對方親身體驗或看到具體成果，抽象的數字或長期規劃容易讓他們失去興趣。" },
+  Ne: { label:"外向直覺", code:"Ne", role:"機會探索者", jobTitle:"Explorer 型",
+    color:"#0F6E56", bg:"#E1F5EE", border:"#9FE1CB", text:"#085041",
+    desc:"金錢是你開創可能性的能量。你對新機會和未來趨勢有天然嗅覺，永遠在尋找下一個值得布局的方向。你的財務思維創意多元，能看到別人還沒看到的機會。",
+    strengths:["前瞻視野廣，對新趨勢敏感","創意多元的投資思維","能看到潛在的新機會","不受傳統框架限制"],
+    risks:["計畫多於執行，容易分散過度","容易受樂觀偏誤影響，高估成功機率","開始得多，完成得少"],
+    tip:"最需要警覺「代表性啟發法」——當一個標的符合你對未來趨勢的想像時，你可能忽略統計基礎率，對成功機率過度樂觀。",
+    comms:"溝通時給他們空間探索可能性，不要一開始就框死唯一選項。讓他們參與規劃過程，比直接給答案更有效。" },
+  Ti: { label:"內向思考", code:"Ti", role:"精算分析師", jobTitle:"Analyst 型",
+    color:"#3C3489", bg:"#EEEDFE", border:"#CECBF6", text:"#26215C",
+    desc:"在完全理解邏輯之前，你不輕易行動。你需要在內心建構一套完整的框架，確認每個環節都說得通才感到安心。這讓你在識破財務陷阱上有獨特的優勢，不容易被話術說服。",
+    strengths:["邏輯嚴謹，善於發現漏洞","不容易被話術或情緒說服","獨立判斷能力強","風險識別能力高"],
+    risks:["容易陷入分析癱瘓，遲遲無法行動","決策時間過長，錯失時機","過度依賴自己的框架，難以接受新的觀點"],
+    tip:"最需要注意「錨定效應」——一旦你在心裡建立了某個估值或判斷，即使外部條件改變，也很難更新那個錨點。",
+    comms:"溝通時給他們完整的資訊和邏輯依據，讓他們自己推導出結論。不要催促，也不要只給結論不給過程。" },
+  Fi: { label:"內向情感", code:"Fi", role:"價值守門人", jobTitle:"Artist 型",
+    color:"#854F0B", bg:"#FAEEDA", border:"#FAC775", text:"#412402",
+    desc:"你的財務決策必須符合內在的道德羅盤。金錢對你來說是表達價值觀的方式，不只是數字。你對「這筆錢用得有沒有意義」極度敏感，因此在選擇投資標的或消費時有強烈的個人標準。",
+    strengths:["決策有深層的價值依據","不容易被潮流或廣告左右","有清晰的財務倫理觀","長期堅守信念一致的選擇"],
+    risks:["可能因為價值觀而拒絕合理的報酬","容易有確認偏誤，只看符合自己理念的優點","猶豫期過長，錯失機會"],
+    tip:"最需要注意「確認偏誤」——當一個標的符合你的價值觀時，你可能只願意看見優點，對財務基本面的缺陷視而不見。",
+    comms:"溝通時先確認這個決策是否符合他們的核心價值，不要用效益說服，要用意義說服。" },
+  Si: { label:"內向實感", code:"Si", role:"穩定秩序守護者", jobTitle:"Auditor 型",
+    color:"#27500A", bg:"#EAF3DE", border:"#C0DD97", text:"#173404",
+    desc:"安全感是你財務決策的核心。你重視可預測性、熟悉感和歷史延續性，傾向選擇經過驗證的方式。定存、低波動資產讓你感到踏實，你的財務紀律往往很強，基礎扎實。",
+    strengths:["儲蓄紀律強，財務基礎扎實","風控意識高，不輕易冒險","不容易被短期誘惑左右","財務秩序感強"],
+    risks:["容易受本土偏誤限制，只投資熟悉的東西","對新事物過度謹慎，可能錯失成長機會","現狀偏誤強，即使現有安排不再最佳也難以改變"],
+    tip:"最需要注意「現狀偏誤」——即使某個既有的安排已不再最佳，你也會因為熟悉感而不願改變，可能讓你長期持有效率偏低的資產。",
+    comms:"溝通時提供歷史數據和前例，強調這個方案的穩定性和可預測性，不要一次提太多改變。" },
+  Ni: { label:"內向直覺", code:"Ni", role:"長線戰略家", jobTitle:"CSO 型",
+    color:"#444441", bg:"#F1EFE8", border:"#D3D1C7", text:"#2C2C2A",
+    desc:"你的財務思考天然以終局為導向。你不在乎短期波動，在乎的是這個決策十年後會把你帶到哪裡。金錢是實現長期人生藍圖的工具，你有強烈的整合能力與長線定力。",
+    strengths:["抗壓性強，長線定力佳","宏觀整合能力強，能看見大方向","不被短期雜訊干擾","對人生方向有清晰的感覺"],
+    risks:["可能忽略短期現金流的重要性","對細節執行缺乏耐心","確信感過強時，對反面訊號視而不見"],
+    tip:"最需要注意「過度確信偏誤」——當你對某個長期方向深信不疑時，反面的訊號很難進入你的視野，可能導致短期現金流危機被忽視。",
+    comms:"溝通時連結到他們的長期人生願景，短期的數字和即時的變化難以打動他們，要從整體方向切入。" }
+};
+
+var domAuxMap = {
+  "e-T-S":{ dom:"Te", aux:"Si" }, "e-T-N":{ dom:"Te", aux:"Ni" },
+  "e-F-S":{ dom:"Fe", aux:"Si" }, "e-F-N":{ dom:"Fe", aux:"Ni" },
+  "e-S-T":{ dom:"Se", aux:"Ti" }, "e-S-F":{ dom:"Se", aux:"Fi" },
+  "e-N-T":{ dom:"Ne", aux:"Ti" }, "e-N-F":{ dom:"Ne", aux:"Fi" },
+  "i-T-S":{ dom:"Ti", aux:"Se" }, "i-T-N":{ dom:"Ti", aux:"Ne" },
+  "i-F-S":{ dom:"Fi", aux:"Se" }, "i-F-N":{ dom:"Fi", aux:"Ne" },
+  "i-S-T":{ dom:"Si", aux:"Te" }, "i-S-F":{ dom:"Si", aux:"Fe" },
+  "i-N-T":{ dom:"Ni", aux:"Te" }, "i-N-F":{ dom:"Ni", aux:"Fe" }
+};
+
+// ── 狀態 ──────────────────────────────────────────────────
+var identity="", direction="", dirScore={e:0,i:0};
+var p1Idx=0, p1Ans=[], p1Sel=null;
+var p2Idx=0, p2Step=0, p2LikeSel=null, p2UnlikeSel=null;
+var p2Scores={Te:0,Fe:0,Ti:0,Fi:0};
+var p3Idx=0, p3Step=0, p3LikeSel=null, p3UnlikeSel=null;
+var p3Scores={Se:0,Ne:0,Si:0,Ni:0};
+var tbSel=null; // 決勝題選擇
+
+// ── 工具 ──────────────────────────────────────────────────
+function showScreen(id){
+  var ss=document.querySelectorAll(".screen");
+  for(var i=0;i<ss.length;i++) ss[i].classList.remove("active");
+  document.getElementById(id).classList.add("active");
+  window.scrollTo(0,0);
+}
+function setBtn(id,en){ document.getElementById(id).disabled=!en; }
+
+// ── 身份 ──────────────────────────────────────────────────
+function selectId(id){
+  identity=id;
+  document.getElementById("btn-student").classList.toggle("selected",id==="student");
+  document.getElementById("btn-adult").classList.toggle("selected",id==="adult");
+  setBtn("btn-start",true);
+}
+function startQuiz(){
+  if(!identity) return;
+  p1Idx=0; p1Ans=[]; p1Sel=null;
+  showScreen("s-p1"); renderP1();
+}
+
+// ── 第一階段 ──────────────────────────────────────────────
+function renderP1(){
+  var q=Q1[p1Idx];
+  document.getElementById("p1-label").textContent="第 "+(p1Idx+1)+" 題，共 3 題";
+  document.getElementById("p1-prog").style.width=Math.round(((p1Idx+1)/3)*100)+"%";
+  document.getElementById("p1-sit").textContent=q.sit[identity];
+  document.getElementById("p1-back").style.visibility=p1Idx===0?"hidden":"visible";
+  document.getElementById("p1-next").textContent=p1Idx===2?"查看能量方向":"下一題";
+  var saved=p1Ans[p1Idx]||null;
+  var opts=document.getElementById("p1-opts"); opts.innerHTML="";
+  var choices=[{letter:"A",d:q.a},{letter:"B",d:q.b}];
+  for(var i=0;i<choices.length;i++){
+    (function(item){
+      var el=document.createElement("div");
+      el.className="opt2"+(saved===item.d.val?" selected":"");
+      el.innerHTML='<span class="opt-letter">'+item.letter+'</span><span class="opt-text">'+item.d.text+'</span>';
+      el.onclick=function(){
+        p1Sel=item.d.val;
+        var all=document.querySelectorAll("#p1-opts .opt2");
+        for(var j=0;j<all.length;j++) all[j].classList.remove("selected");
+        el.classList.add("selected");
+        setBtn("p1-next",true);
+      };
+      opts.appendChild(el);
+    })(choices[i]);
+  }
+  setBtn("p1-next",saved!==null);
+  if(saved) p1Sel=saved;
+}
+function p1Back(){ if(p1Idx>0){p1Idx--;p1Sel=p1Ans[p1Idx]||null;renderP1();} }
+function p1Next(){
+  if(!p1Sel) return;
+  p1Ans[p1Idx]=p1Sel;
+  if(p1Idx<2){p1Idx++;p1Sel=p1Ans[p1Idx]||null;renderP1();}
+  else{
+    dirScore={e:0,i:0};
+    for(var k=0;k<p1Ans.length;k++) dirScore[p1Ans[k]]++;
+    direction=dirScore.e>=dirScore.i?"e":"i";
+    showTransition();
+  }
+}
+function showTransition(){
+  showScreen("s-trans");
+  var isE=direction==="e";
+  document.getElementById("trans-title").textContent=isE?"你的金錢能量傾向是外向的":"你的金錢能量傾向是內向的";
+  var badge=document.getElementById("trans-badge");
+  badge.textContent=isE?"外向傾向 "+dirScore.e+"/3":"內向傾向 "+dirScore.i+"/3";
+  badge.style.cssText=isE?"background:#E6F1FB;color:#0C447C;border:1px solid #B5D4F4":"background:#EAF3DE;color:#27500A;border:1px solid #C0DD97";
+  document.getElementById("trans-text").textContent=isE
+    ?"你在金錢財務上的能量是外向的——金錢的意義需要透過與外部世界的互動、分享或影響才能完整實現。接下來進入第二階段，找出你的主導功能類型。"
+    :"你在金錢財務上的能量是內向的——金錢的滿足感可以在內部世界自給自足，不需要外部認同才能感到完整。接下來進入第二階段，找出你的主導功能類型。";
+  document.getElementById("e-bar").style.width=Math.round((dirScore.e/3)*100)+"%";
+  document.getElementById("i-bar").style.width=Math.round((dirScore.i/3)*100)+"%";
+  document.getElementById("e-val").textContent=dirScore.e+"/3";
+  document.getElementById("i-val").textContent=dirScore.i+"/3";
+}
+
+// ── 第二階段 ──────────────────────────────────────────────
+function startP2(){
+  p2Idx=0;p2Step=0;p2LikeSel=null;p2UnlikeSel=null;
+  p2Scores={Te:0,Fe:0,Ti:0,Fi:0};
+  showScreen("s-p2"); renderP2();
+}
+function renderP2(){
+  var q=Q2[p2Idx];
+  var isLike=p2Step===0;
+  var total=Q2.length*2;
+  var current=p2Idx*2+(isLike?1:2);
+  document.getElementById("p2-label").textContent="題目 "+(p2Idx+1)+"／"+Q2.length+"　步驟 "+(isLike?1:2)+"／2";
+  document.getElementById("p2-prog").style.width=Math.round((current/total)*100)+"%";
+  document.getElementById("p2-sit").textContent=q.sit[identity];
+  document.getElementById("p2-q").textContent=q.text;
+  var badge=document.getElementById("p2-badge");
+  badge.textContent=isLike?"最像你的是？":"最不像你的是？";
+  badge.className="step-badge "+(isLike?"step-like":"step-unlike");
+  document.getElementById("p2-back").style.visibility=(p2Idx===0&&isLike)?"hidden":"visible";
+  document.getElementById("p2-next").textContent=(p2Idx===Q2.length-1&&!isLike)?"進入第三階段 →":"下一步";
+  var alreadySel=isLike?(p2LikeSel!==null):(p2UnlikeSel!==null);
+  setBtn("p2-next",alreadySel);
+  var opts=document.getElementById("p2-opts"); opts.innerHTML="";
+  var letters=["A","B","C","D"];
+  for(var i=0;i<q.opts.length;i++){
+    (function(opt,idx){
+      var isLiked=opt.val===p2LikeSel;
+      var isSelected=isLike?(p2LikeSel===opt.val):(p2UnlikeSel===opt.val);
+      var cls="opt";
+      if(isSelected) cls+=isLike?" like":" unlike";
+      if(!isLike&&isLiked) cls+=" disabled";
+      var el=document.createElement("div");
+      el.className=cls;
+      el.innerHTML='<span class="opt-letter">'+letters[idx]+'</span><span class="opt-text">'+opt.text+'</span>';
+      el.onclick=function(){
+        if(!isLike&&isLiked) return;
+        if(isLike){p2LikeSel=opt.val;}else{p2UnlikeSel=opt.val;}
+        setBtn("p2-next",true); renderP2();
+      };
+      opts.appendChild(el);
+    })(q.opts[i],i);
+  }
+}
+function p2Back(){
+  if(p2Step===1){p2Scores[p2LikeSel]-=2;p2Step=0;p2UnlikeSel=null;renderP2();}
+  else if(p2Idx>0){p2Idx--;p2Step=1;p2LikeSel=null;p2UnlikeSel=null;renderP2();}
+}
+function p2Next(){
+  if(p2Step===0){
+    if(!p2LikeSel) return;
+    p2Scores[p2LikeSel]+=2;p2Step=1;p2UnlikeSel=null;renderP2();
+  }else{
+    if(!p2UnlikeSel) return;
+    p2Scores[p2UnlikeSel]-=1;
+    if(p2Idx<Q2.length-1){p2Idx++;p2Step=0;p2LikeSel=null;p2UnlikeSel=null;renderP2();}
+    else{startP3();}
+  }
+}
+
+// ── 第三階段 ──────────────────────────────────────────────
+function startP3(){
+  p3Idx=0;p3Step=0;p3LikeSel=null;p3UnlikeSel=null;
+  p3Scores={Se:0,Ne:0,Si:0,Ni:0};
+  showScreen("s-p3"); renderP3();
+}
+function renderP3(){
+  var q=Q3[p3Idx];
+  var isLike=p3Step===0;
+  var total=Q3.length*2;
+  var current=p3Idx*2+(isLike?1:2);
+  document.getElementById("p3-label").textContent="題目 "+(p3Idx+1)+"／"+Q3.length+"　步驟 "+(isLike?1:2)+"／2";
+  document.getElementById("p3-prog").style.width=Math.round((current/total)*100)+"%";
+  document.getElementById("p3-sit").textContent=q.sit[identity];
+  document.getElementById("p3-q").textContent=q.text;
+  var badge=document.getElementById("p3-badge");
+  badge.textContent=isLike?"最像你的是？":"最不像你的是？";
+  badge.className="step-badge "+(isLike?"step-like":"step-unlike");
+  document.getElementById("p3-back").style.visibility=(p3Idx===0&&isLike)?"hidden":"visible";
+  document.getElementById("p3-next").textContent=(p3Idx===Q3.length-1&&!isLike)?"查看結果 →":"下一步";
+  var alreadySel=isLike?(p3LikeSel!==null):(p3UnlikeSel!==null);
+  setBtn("p3-next",alreadySel);
+  var opts=document.getElementById("p3-opts"); opts.innerHTML="";
+  var letters=["A","B","C","D"];
+  for(var i=0;i<q.opts.length;i++){
+    (function(opt,idx){
+      var isLiked=opt.val===p3LikeSel;
+      var isSelected=isLike?(p3LikeSel===opt.val):(p3UnlikeSel===opt.val);
+      var cls="opt";
+      if(isSelected) cls+=isLike?" like":" unlike";
+      if(!isLike&&isLiked) cls+=" disabled";
+      var el=document.createElement("div");
+      el.className=cls;
+      el.innerHTML='<span class="opt-letter">'+letters[idx]+'</span><span class="opt-text">'+opt.text+'</span>';
+      el.onclick=function(){
+        if(!isLike&&isLiked) return;
+        if(isLike){p3LikeSel=opt.val;}else{p3UnlikeSel=opt.val;}
+        setBtn("p3-next",true); renderP3();
+      };
+      opts.appendChild(el);
+    })(q.opts[i],i);
+  }
+}
+function p3Back(){
+  if(p3Step===1){p3Scores[p3LikeSel]-=2;p3Step=0;p3UnlikeSel=null;renderP3();}
+  else if(p3Idx>0){p3Idx--;p3Step=1;p3LikeSel=null;p3UnlikeSel=null;renderP3();}
+}
+function p3Next(){
+  if(p3Step===0){
+    if(!p3LikeSel) return;
+    p3Scores[p3LikeSel]+=2;p3Step=1;p3UnlikeSel=null;renderP3();
+  }else{
+    if(!p3UnlikeSel) return;
+    p3Scores[p3UnlikeSel]-=1;
+    if(p3Idx<Q3.length-1){p3Idx++;p3Step=0;p3LikeSel=null;p3UnlikeSel=null;renderP3();}
+    else{checkTiebreaker();}
+  }
+}
+
+// ── 決勝題邏輯 ────────────────────────────────────────────
+function checkTiebreaker(){
+  var tScore=p2Scores.Te+p2Scores.Ti;
+  var fScore=p2Scores.Fe+p2Scores.Fi;
+  var sScore=p3Scores.Se+p3Scores.Si;
+  var nScore=p3Scores.Ne+p3Scores.Ni;
+
+  // 找出是否有並列（差距<=1分）
+  // 先確認主導類型（判斷 vs 感知）
+  var judgeType=tScore>=fScore?"T":"F";
+  var perceptType=sScore>=nScore?"S":"N";
+
+  // 找出並列的具體功能
+  var tbKey=null;
+
+  // 判斷功能並列（T vs F 差距<=1）
+  if(Math.abs(tScore-fScore)<=1){
+    // 在T群和F群裡各找最高者
+    var topT=p2Scores.Te>=p2Scores.Ti?"Te":"Ti";
+    var topF=p2Scores.Fe>=p2Scores.Fi?"Fe":"Fi";
+    var key1=topT+"-"+topF;
+    var key2=topF+"-"+topT;
+    if(tiebreakers[key1]) tbKey=key1;
+    else if(tiebreakers[key2]) tbKey=key2;
+  }
+  // 感知功能並列（S vs N 差距<=1）
+  else if(Math.abs(sScore-nScore)<=1){
+    var topS=p3Scores.Se>=p3Scores.Si?"Se":"Si";
+    var topN=p3Scores.Ne>=p3Scores.Ni?"Ne":"Ni";
+    var key3=topS+"-"+topN;
+    var key4=topN+"-"+topS;
+    if(tiebreakers[key3]) tbKey=key3;
+    else if(tiebreakers[key4]) tbKey=key4;
+  }
+  // 同一功能群內並列（例如Ti vs Si同分，都在內向T）
+  else{
+    // 檢查主導功能對應的兩個功能
+    var key5=direction+"-"+judgeType+"-"+perceptType;
+    var result5=domAuxMap[key5]||{dom:"Ti",aux:"Ne"};
+    var dom5=result5.dom;
+    // 找第二高的功能
+    var allS={Te:p2Scores.Te,Fe:p2Scores.Fe,Ti:p2Scores.Ti,Fi:p2Scores.Fi,
+               Se:p3Scores.Se,Ne:p3Scores.Ne,Si:p3Scores.Si,Ni:p3Scores.Ni};
+    var sorted=Object.keys(allS).sort(function(a,b){return allS[b]-allS[a];});
+    var second=sorted[1];
+    if(allS[dom5]-allS[second]<=1){
+      var key6=dom5+"-"+second;
+      var key7=second+"-"+dom5;
+      if(tiebreakers[key6]) tbKey=key6;
+      else if(tiebreakers[key7]) tbKey=key7;
+    }
+  }
+
+  if(tbKey){
+    showTiebreaker(tbKey);
+  }else{
+    showResult(null);
+  }
+}
+
+function showTiebreaker(tbKey){
+  tbSel=null;
+  var tb=tiebreakers[tbKey];
+  document.getElementById("tb-intro").textContent="你的測驗結果顯示兩種傾向非常接近，請再回答一題，幫助我們更準確找出你的主導功能。";
+  document.getElementById("tb-q").textContent=tb.q;
+  setBtn("tb-next",false);
+  var container=document.getElementById("tb-cards");
+  container.innerHTML="";
+  for(var i=0;i<tb.cards.length;i++){
+    (function(card){
+      var p=profiles[card.code];
+      var el=document.createElement("div");
+      el.className="tb-card";
+      el.innerHTML='<p class="tb-card-label" style="color:'+p.color+'">'+p.label+' ('+p.code+') · '+p.jobTitle+'</p>'
+        +'<p class="tb-card-name">'+card.name+'</p>'
+        +'<p class="tb-card-desc">'+card.desc+'</p>';
+      el.onclick=function(){
+        tbSel=card.code;
+        var all=document.querySelectorAll(".tb-card");
+        for(var j=0;j<all.length;j++){
+          all[j].classList.remove("selected");
+          all[j].style.borderColor="#e8e8e8";
+          all[j].style.background="white";
+        }
+        el.classList.add("selected");
+        el.style.borderColor=p.color;
+        el.style.background=p.bg;
+        setBtn("tb-next",true);
+      };
+      container.appendChild(el);
+    })(tb.cards[i]);
+  }
+  showScreen("s-tb");
+}
+
+function tbNext(){
+  if(!tbSel) return;
+  showResult(tbSel);
+}
+
+// ── 結果頁 ────────────────────────────────────────────────
+function showResult(tbOverride){
+  var tScore=p2Scores.Te+p2Scores.Ti;
+  var fScore=p2Scores.Fe+p2Scores.Fi;
+  var sScore=p3Scores.Se+p3Scores.Si;
+  var nScore=p3Scores.Ne+p3Scores.Ni;
+  var judgeType=tScore>=fScore?"T":"F";
+  var perceptType=sScore>=nScore?"S":"N";
+  var key=direction+"-"+judgeType+"-"+perceptType;
+  var result=domAuxMap[key]||{dom:"Ti",aux:"Ne"};
+  var domCode=tbOverride||result.dom;
+  var dom=profiles[domCode];
+
+  var judgeDiff=Math.abs(tScore-fScore);
+  var perceptDiff=Math.abs(sScore-nScore);
+  var overallDiff=Math.min(judgeDiff,perceptDiff);
+
+  // 顯著性說明
+  var sigHtml="";
+  if(tbOverride){
+    sigHtml='<div class="sig-box" style="background:'+dom.bg+';border-color:'+dom.border+';color:'+dom.text+'">透過決勝題確認——你選擇了'+dom.label+'作為更符合自己的主導功能。</div>';
+  }else if(overallDiff>=5){
+    sigHtml='<div class="sig-box" style="background:'+dom.bg+';border-color:'+dom.border+';color:'+dom.text+'">主導功能顯著清晰——'+dom.label+'是你在金錢財務上一致且穩定的主導方式。</div>';
+  }else if(overallDiff>=2){
+    sigHtml='<div class="sig-box" style="background:#f9f9f9;border-color:#ddd;color:#555">主導功能偏向'+dom.label+'，在部分情境下其他功能的聲音也會出現，尤其在壓力或情緒主導時。</div>';
+  }else{
+    sigHtml='<div class="sig-box" style="background:#FAEEDA;border-color:#FAC775;color:#633806">雙主導傾向——兩種功能的分數非常接近。你的金錢決策在不同情境下可能呈現不同的面貌，這是你性格結構的一部分。</div>';
+  }
+
+  // 八維 Bar 圖
+  var allScores={Te:p2Scores.Te,Fe:p2Scores.Fe,Ti:p2Scores.Ti,Fi:p2Scores.Fi,
+                 Se:p3Scores.Se,Ne:p3Scores.Ne,Si:p3Scores.Si,Ni:p3Scores.Ni};
+  var allCodes=["Te","Fe","Se","Ne","Ti","Fi","Si","Ni"];
+  var minS=-6, range=18;
+  var barHtml='<div class="bar-section"><p class="section-title">榮格八維金錢心智功能分佈</p><div class="bar-chart">';
+  for(var bi=0;bi<allCodes.length;bi++){
+    var code=allCodes[bi];
+    var val=allScores[code];
+    var pct=Math.max(0,Math.round(((val-minS)/range)*100));
+    var isDom=code===domCode;
+    var fillColor=isDom?profiles[code].color:"#ccc";
+    var labelCls=isDom?"bar-item-label dom":"bar-item-label";
+    var roleCls=isDom?"bar-item-role dom":"bar-item-role";
+    var domTag=isDom?(' <span style="font-size:10px;background:'+profiles[code].bg+';color:'+profiles[code].text+';padding:1px 6px;border-radius:10px;border:1px solid '+profiles[code].border+'">主導</span>'):"";
+    barHtml+='<div class="bar-item">'
+      +'<span class="'+labelCls+'">'+code+'</span>'
+      +'<div class="bar-item-track"><div class="bar-item-fill" style="width:'+pct+'%;background:'+fillColor+'"><span class="bar-item-val">'+val+'</span></div></div>'
+      +'<span class="'+roleCls+'">'+profiles[code].role+domTag+'</span>'
+      +'</div>';
+  }
+  barHtml+='</div></div>';
+
+  var idLabel=identity==="student"?"學生版":"成年人版";
+  var html="";
+  html+='<p class="result-eyebrow">MFD 金錢財務性格測驗結果 · '+idLabel+'</p>';
+  html+='<span class="result-badge" style="background:'+dom.bg+';color:'+dom.text+';border:1px solid '+dom.border+'">'+dom.label+' · '+dom.code+' · '+dom.jobTitle+'</span>';
+  html+='<p class="result-main-title">'+dom.role+'</p>';
+  html+='<p class="result-role" style="color:'+dom.color+'">'+dom.label+'（'+dom.code+'）· '+dom.jobTitle+'</p>';
+  html+='<p class="result-code">能量方向：'+(direction==="e"?"外向 "+dirScore.e+"/3":"內向 "+dirScore.i+"/3")
+    +'　·　判斷偏好：'+(judgeType==="T"?"思考（T）":"情感（F）")
+    +'　·　感知偏好：'+(perceptType==="S"?"實感（S）":"直覺（N）")+'</p>';
+  html+=sigHtml;
+  html+=barHtml;
+
+  html+='<div style="border-left:4px solid '+dom.color+';padding-left:1rem;margin-bottom:1.5rem">';
+  html+='<p class="section-title" style="color:'+dom.color+'">主導功能</p>';
+  html+='<p style="font-size:17px;font-weight:600;color:#1a1a1a;margin-bottom:0.4rem">'+dom.label+'（'+dom.code+'）· '+dom.jobTitle+'</p>';
+  html+='<p style="font-size:15px;color:#333;line-height:1.85">'+dom.desc+'</p>';
+  html+='</div>';
+
+  html+='<div class="result-section"><p class="section-title">財務優勢</p><div class="tags">';
+  for(var si=0;si<dom.strengths.length;si++) html+='<span class="tag-g">'+dom.strengths[si]+'</span>';
+  html+='</div></div>';
+
+  html+='<div class="result-section"><p class="section-title">需要警覺的財務盲區</p><div class="tags">';
+  for(var ri=0;ri<dom.risks.length;ri++) html+='<span class="tag-r">'+dom.risks[ri]+'</span>';
+  html+='</div><div class="tip-box" style="margin-top:0.75rem;margin-bottom:0">'+dom.tip+'</div></div>';
+
+  html+='<div class="result-section"><p class="section-title">適合溝通金錢的方式</p>';
+  html+='<div class="tip-box" style="border-left-color:'+dom.color+'">'+dom.comms+'</div></div>';
+
+  document.getElementById("result-body").innerHTML=html;
+  showScreen("s-result");
+
+  setTimeout(function(){
+    var fills=document.querySelectorAll(".bar-item-fill");
+    for(var fi=0;fi<fills.length;fi++){
+      (function(el){
+        var w=el.style.width; el.style.width="0";
+        setTimeout(function(){el.style.width=w;},60);
+      })(fills[fi]);
+    }
+  },150);
+}
+
+// ── PDF ───────────────────────────────────────────────────
+function savePDF(){
+  var ss=document.querySelectorAll(".screen");
+  for(var i=0;i<ss.length;i++) ss[i].style.display="none";
+  var r=document.getElementById("s-result");
+  r.style.display="block";
+  window.print();
+  setTimeout(function(){
+    for(var i=0;i<ss.length;i++) ss[i].style.display="";
+    r.classList.add("active");
+  },600);
+}
+
+// ── 重新測驗 ──────────────────────────────────────────────
+function restart(){
+  identity=""; direction=""; dirScore={e:0,i:0};
+  p1Idx=0; p1Ans=[]; p1Sel=null;
+  p2Idx=0; p2Step=0; p2LikeSel=null; p2UnlikeSel=null;
+  p2Scores={Te:0,Fe:0,Ti:0,Fi:0};
+  p3Idx=0; p3Step=0; p3LikeSel=null; p3UnlikeSel=null;
+  p3Scores={Se:0,Ne:0,Si:0,Ni:0};
+  tbSel=null;
+  document.getElementById("btn-student").classList.remove("selected");
+  document.getElementById("btn-adult").classList.remove("selected");
+  setBtn("btn-start",false);
+  showScreen("s-intro");
+}
+</script>
+</body>
+</html>
